@@ -1,3 +1,7 @@
+require "rubygems" 
+require "bundler" 
+Bundler.setup 
+
 $LOAD_PATH.delete_if { |path| path[/gems\/vanity-\d/] }
 $LOAD_PATH.unshift File.expand_path("../lib", File.dirname(__FILE__))
 RAILS_ROOT = File.expand_path("..")
