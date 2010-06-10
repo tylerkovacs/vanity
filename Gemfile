@@ -1,7 +1,4 @@
 source "http://rubygems.org/"
-gem "autotest"
-gem "autotest-fsevent"
-gem "autotest-growl"
 gem "bundler"
 gem "garb"
 gem "jekyll"
