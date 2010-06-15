@@ -212,7 +212,7 @@ module Vanity
 
     def destroy!
       if redis.client.connected?
-        redis.del redis.keys(key("*"))
+        redis.del *redis.keys(key("*"))
       end
     end
 

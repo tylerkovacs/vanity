@@ -14,7 +14,7 @@ module Vanity
     end
 
     def del(*keys)
-      keys.flatten.each do |key|
+      keys.to_a.flatten.each do |key|
         @@hash.delete key
       end
     end
