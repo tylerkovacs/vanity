@@ -1,5 +1,4 @@
 module Vanity
-  # The Redis you should never use in production.
   class MockRedis
     @@hash = {}
 
@@ -32,7 +31,7 @@ module Vanity
       @@hash[key] = (@@hash[key].to_i + value).to_s
     end
 
-    def mget(keys)
+    def mget(*keys)
       @@hash.values_at(*keys)
     end
 

@@ -121,8 +121,12 @@ module Vanity
       @playground, @name = playground, name.to_s
       @id = (id || name.to_s.downcase.gsub(/\W+/, '_')).to_sym
       @hooks = []
-      redis.setnx key(:created_at), Time.now.to_i
-      @created_at = Time.at(redis[key(:created_at)].to_i)
+      if redis.client.connected?
+        redis.setnx key(:created_at), Time.now.to_i
+        @created_at = Time.at(redis[key(:created_at)].to_i)
+      else
+        @created_at = nil
+      end
     end
 
 
@@ -133,8 +137,12 @@ module Vanity
       count ||= 1
       if count > 0
         timestamp = Time.now
-        redis.incrby key(timestamp.to_date, "count"), count
-        @playground.logger.info "vanity: #{@id} with count #{count}"
+        if redis.client.connected?
+          redis.incrby key(timestamp.to_date, "count"), count
+          @playground.logger.info "vanity: #{@id} with count #{count}"
+        else
+          @playground.logger.info "vanity: track failed #{@id} with count #{count} - not connected to redis"
+        end
         call_hooks timestamp, count
       end
     end
@@ -192,14 +200,20 @@ module Vanity
     # Given two arguments, a start date and an end date (inclusive), returns an
     # array of measurements.  All metrics must implement this method.
     def values(from, to)
-      redis.mget((from.to_date..to.to_date).map { |date| key(date, "count") }).map(&:to_i)
+      if redis.client.connected?
+        redis.mget(*(from.to_date..to.to_date).map { |date| key(date, "count") }).map(&:to_i)
+      else
+        []
+      end
     end
 
 
     # -- Storage --
 
     def destroy!
-      redis.del redis.keys(key("*"))
+      if redis.client.connected?
+        redis.del redis.keys(key("*"))
+      end
     end
 
     def redis
