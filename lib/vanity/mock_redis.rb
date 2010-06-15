@@ -1,8 +1,18 @@
 module Vanity
+  class MockClient
+    def connected?
+      true
+    end
+  end
+
   class MockRedis
     @@hash = {}
 
     def initialize(options = {})
+    end
+
+    def client
+      @client ||= MockClient.new
     end
 
     def [](key)

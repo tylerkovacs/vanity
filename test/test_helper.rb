@@ -33,14 +33,16 @@ class Test::Unit::TestCase
   # (mostly experiments), resets vanity ID, and clears Redis of all experiments.
   def nuke_playground
     new_playground
-    Vanity.playground.redis.flushdb
+    if Vanity.playground.redis.client.connected?
+      Vanity.playground.redis.flushdb
+    end
   end
 
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
     Vanity.playground = Vanity::Playground.new("::15", :logger=>$logger, :load_path=>"tmp/experiments")
-    #Vanity.playground.mock! unless ENV["REDIS"]
+    # Vanity.playground.test! unless ENV["REDIS"]
   end
 
   # Defines the specified metrics (one or more names).  Returns metric, or array
@@ -70,7 +72,9 @@ class Test::Unit::TestCase
   def teardown
     Vanity.context = nil
     FileUtils.rm_rf "tmp"
-    Vanity.playground.redis.flushdb
+    if Vanity.playground.redis.client.connected?
+      Vanity.playground.redis.flushdb
+    end
   end
 
 end
