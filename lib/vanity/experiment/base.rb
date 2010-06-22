@@ -139,35 +139,56 @@ module Vanity
 
       # Force experiment to complete.
       def complete!
-        redis.setnx key(:completed_at), Time.now.to_i
-        @completed_at = redis[key(:completed_at)]
-        @playground.logger.info "vanity: completed experiment #{id}"
+        if redis.client.connected?
+          redis.setnx key(:completed_at), Time.now.to_i
+          @completed_at = redis[key(:completed_at)]
+          @playground.logger.info "vanity: completed experiment #{id}"
+        else
+          @playground.logger.info "vanity: failed to complete experiment #{id} - not connected to redis"
+        end
       end
 
       # Time stamp when experiment was completed.
       def completed_at
-        @completed_at ||= redis[key(:completed_at)]
-        @completed_at && Time.at(@completed_at.to_i)
+        if redis.client.connected?
+          @completed_at ||= redis[key(:completed_at)]
+          @completed_at && Time.at(@completed_at.to_i)
+        else
+          nil
+        end
       end
       
       # Returns true if experiment active, false if completed.
       def active?
-        !redis.exists(key(:completed_at))
+        if redis.client.connected?
+          !redis.exists(key(:completed_at))
+        else
+          false
+        end
       end
 
       # -- Store/validate --
 
       # Get rid of all experiment data.
       def destroy
-        redis.del key(:created_at)
-        redis.del key(:completed_at)
-        @created_at = @completed_at = nil
+        if redis.client.connected?
+          redis.del key(:created_at)
+          redis.del key(:completed_at)
+          @created_at = @completed_at = nil
+        else
+          @playground.logger.info "vanity: failed to destroy - not connected to redis"
+        end
       end
 
       # Called by Playground to save the experiment definition.
       def save
-        redis.setnx key(:created_at), Time.now.to_i
-        @created_at = Time.at(redis[key(:created_at)].to_i)
+        if redis.client.connected?
+          redis.setnx key(:created_at), Time.now.to_i
+          @created_at = Time.at(redis[key(:created_at)].to_i)
+        else
+          @playground.logger.info "vanity: failed to save - not connected to redis"
+          false
+        end
       end
 
     protected

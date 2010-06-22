@@ -63,7 +63,12 @@ To run the test suite for the first time:
   $ bundle install
   $ bundle exec rake
 
-You can also +rake test+ if you insist on being explicit.
+You can also run +rake test+ if you insist on being explicit.
+
+Vanity continues to operate even if Redis is non-response.  To run tests
+in a mode that simulates this condition:
+
+  $ DISCONNECTED=true rake test:redis
 
 To build the documentation:
  

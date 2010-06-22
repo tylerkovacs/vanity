@@ -154,6 +154,14 @@ module Vanity
         @connection_spec = spec_or_connection
         host, port, db = spec_or_connection.split(':').map { |x| x unless x.empty? }
         @redis = Redis.new(:host=>host, :port=>port, :thread_safe=>true, :db=>db, :thread_safe=>true)
+
+        # Connect to redis immediately to that client.connected? checks
+        # are accurate.   Otherwise redis client connects lazily. 
+        begin
+          @redis.connect
+        rescue Exception => err
+          @logger.info "Vanity: error connecting to Redis"
+        end
       when Redis
         @connection_spec = nil
         @redis = spec_or_connection

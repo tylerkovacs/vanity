@@ -41,8 +41,17 @@ class Test::Unit::TestCase
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
-    Vanity.playground = Vanity::Playground.new("::15", :logger=>$logger, :load_path=>"tmp/experiments")
-    # Vanity.playground.test! unless ENV["REDIS"]
+    if ENV['DISCONNECTED']
+      ENV["REDIS"] = 'true'
+      port = 999999 
+    else
+      port = 6379
+    end
+
+    port = ENV['DISCONNECTED'] ? 999999 : 6379
+    Vanity.playground = Vanity::Playground.new(":#{port}:15", :logger=>$logger, :load_path=>"tmp/experiments")
+
+    Vanity.playground.test! unless ENV["REDIS"]
   end
 
   # Defines the specified metrics (one or more names).  Returns metric, or array
